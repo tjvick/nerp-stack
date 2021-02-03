@@ -1,4 +1,4 @@
-.PHONY: %.install %.start install up down
+.PHONY: %.install %.start install db.* up down
 
 %.install:
 	cd $* && npm install
@@ -8,9 +8,16 @@
 
 install: server.install client.install
 
-up:
+db.up:
 	docker-compose up -d
+
+db.init:
+	cd server && npm run db:init
+
+db.down:
+	docker-compose down
+
+up: db.up db.init
 	make server.start & make client.start
 
-down:
-	docker-compose down
+down: db.down

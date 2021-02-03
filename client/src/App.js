@@ -2,27 +2,52 @@ import './App.css';
 import {useEffect, useState} from "react";
 import axios from "axios"
 
+
 function App() {
-  const [content, setContent] = useState({})
+  const [pageContent, setPageContent] = useState({})
+  const [messages, setMessages] = useState([]);
+
+  const fetchPageContent = async () => {
+    try {
+      const res = await axios.get("http://localhost:4000")
+      setPageContent(res.data);
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  const fetchMessages = async () => {
+    try {
+      const res = await axios.get("http://localhost:4000/messages")
+      setMessages(res.data);
+    } catch (err) {
+      console.error(err);
+    }
+  }
 
   useEffect(() => {
-    axios.get("http://localhost:4000")
-      .then(res => res.data)
-      .then(data => {
-        setContent(data);
-      })
-      .catch(err => {console.error(err)})
+    fetchPageContent()
   }, [])
 
   return (
     <div>
       <main>
         {
-          content && <>
-            <h1>{content.title}</h1>
-            <p>{content.message}</p>
+          pageContent && <>
+            <h1>{pageContent.title}</h1>
+            <p>{pageContent.message}</p>
           </>
         }
+        <button onClick={fetchMessages}>
+          Get Messages
+        </button>
+        <ul>
+          {
+            messages.map(({id, message}) => (
+              <li key={id}>{message}</li>
+            ))
+          }
+        </ul>
       </main>
       <footer>
         <a href="https://reactjs.org" target="_blank" rel="noopener noreferrer">

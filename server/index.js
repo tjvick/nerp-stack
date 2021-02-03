@@ -1,11 +1,19 @@
-const express = require("express")
-const cors = require("cors");
+import express from "express";
+import cors from "cors";
+import {PORT} from "./config.js";
+import {pool} from "./database/pool.js";
+import {readMyTable} from "./database/queries.js";
 
 const app = express();
 
-const PORT = 4000;
-
 app.use(cors())
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+app.get("/messages", async (req, res) => {
+  const {rows} = await pool.query(readMyTable);
+  res.json(rows);
+})
 
 app.get("/", (req, res) => {
   const responseContent = {
@@ -15,6 +23,19 @@ app.get("/", (req, res) => {
   res.json(responseContent)
 })
 
-app.listen(PORT, () => {
-  console.log(`Server app listening at http://localhost:${PORT}`);
+const server = app.listen(PORT, () => {
+  console.log(`Server is listening at http://localhost:${PORT}`);
 })
+
+const shutdown = () => {
+  server.close(() => {
+    console.log("Server closed.");
+    pool.end()
+      .then(() => {
+        console.log("Database connection pool closed.");
+        process.exit(0);
+      })
+  })
+}
+
+process.on("SIGINT", shutdown)
